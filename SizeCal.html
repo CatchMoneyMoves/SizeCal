@@ -15,7 +15,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .logo{font-size:1.5rem;font-weight:700;color:#a78bfa;margin-bottom:4px}
 .subtitle{font-size:0.8rem;color:#64748b}
 .market-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px;background:#13131a;padding:6px;border-radius:12px;border:1px solid #1e1e2e}
-.market-tab{background:transparent;border:none;color:#64748b;padding:10px 4px;border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:600;transition:all 0.15s;text-align:center}
+.market-tab{background:transparent;border:none;color:#64748b;padding:10px 4px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-weight:600;transition:all 0.15s;text-align:center}
 .market-tab.active{background:#3b1f6e;color:#a78bfa}
 .market-tab:not(.active):active{background:#1e1e2e}
 .card{background:#13131a;border:1px solid #1e1e2e;border-radius:14px;padding:18px;margin-bottom:14px}
@@ -57,7 +57,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 
   <div class="market-tabs">
     <button class="market-tab active" onclick="selectMarket('usdjpy',this)">USD/JPY</button>
-    <button class="market-tab" onclick="selectMarket('mnq',this)">MNQ</button>
+    <button class="market-tab" onclick="selectMarket('mes',this)">MES</button>
     <button class="market-tab" onclick="selectMarket('mcl',this)">MCL</button>
     <button class="market-tab" onclick="selectMarket('mgc',this)">MGC</button>
   </div>
@@ -84,8 +84,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
   <div class="card">
     <div class="card-title" id="trade-title">Trade Details</div>
     <div class="input-group">
-      <div class="input-label" id="stop-label">Stop Loss <span class="input-hint" id="stop-hint">pips</span></div>
-      <input type="number" class="input-field" id="stop" placeholder="20" step="0.1" inputmode="decimal" oninput="calc()">
+      <div class="input-label" id="stop-label">Stop Loss Distance <span class="input-hint" id="stop-hint">pips</span></div>
+      <input type="number" class="input-field" id="stop" placeholder="20" step="0.01" inputmode="decimal" oninput="calc()">
     </div>
   </div>
 
@@ -108,16 +108,40 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
   <div class="warning" id="warning"></div>
 
   <div class="info-box" id="info-box">
-    <strong>Tip:</strong> Start with 1% risk per trade while rebuilding consistency.
+    <strong>Tip:</strong> Enter stop loss in the same unit TradingView shows — pips for forex, points for futures.
   </div>
 </div>
 
 <script>
+// Based on actual CME contract specs & TradingView P&L measurements
 const MARKETS={
-  usdjpy:{name:'USD/JPY',type:'forex',pipValuePer10k:0.67,marginPer10k:20,stopUnit:'pips',tradeTitle:'USD/JPY Trade',unit:'units',round:1000},
-  mnq:{name:'MNQ',type:'futures',tickValue:0.50,marginPerContract:60,stopUnit:'ticks',tradeTitle:'Micro Nasdaq 100',unit:'contract(s)',round:1},
-  mcl:{name:'MCL',type:'futures',tickValue:1.00,marginPerContract:100,stopUnit:'ticks',tradeTitle:'Micro Crude Oil',unit:'contract(s)',round:1},
-  mgc:{name:'MGC',type:'futures',tickValue:1.00,marginPerContract:100,stopUnit:'ticks',tradeTitle:'Micro Gold',unit:'contract(s)',round:1}
+  usdjpy:{
+    name:'USD/JPY',type:'forex',
+    pipValuePer10k:0.67,marginPer10k:20,
+    stopUnit:'pips',tradeTitle:'USD/JPY Trade',
+    unit:'units',round:1000
+  },
+  mes:{
+    name:'MES',type:'futures',
+    dollarPerPoint:5,marginPerContract:50,
+    stopUnit:'points',tradeTitle:'Micro S&P 500',
+    unit:'contract(s)',round:1,
+    example:'10 pts = $50/contract'
+  },
+  mcl:{
+    name:'MCL',type:'futures',
+    dollarPerPoint:100,marginPerContract:100,
+    stopUnit:'points ($)',tradeTitle:'Micro Crude Oil',
+    unit:'contract(s)',round:1,
+    example:'1.00 = $100/contract'
+  },
+  mgc:{
+    name:'MGC',type:'futures',
+    dollarPerPoint:10,marginPerContract:100,
+    stopUnit:'points ($)',tradeTitle:'Micro Gold',
+    unit:'contract(s)',round:1,
+    example:'10 pts = $100/contract'
+  }
 };
 
 let currentMarket='usdjpy';
@@ -147,7 +171,7 @@ function selectMarket(key,btn){
   const m=MARKETS[key];
   document.getElementById('trade-title').textContent=m.tradeTitle;
   document.getElementById('stop-hint').textContent=m.stopUnit;
-  document.getElementById('stop-label').innerHTML=`Stop Loss <span class="input-hint">${m.stopUnit}</span>`;
+  document.getElementById('stop-label').innerHTML=`Stop Loss Distance <span class="input-hint">${m.stopUnit}</span>`;
   calc();
 }
 
@@ -197,7 +221,8 @@ function calc(){
     margin=(size/10000)*m.marginPer10k;
     unitLabel=size===1?'unit of '+m.name:'units of '+m.name;
   } else {
-    const riskPerContract=stop*m.tickValue;
+    // Futures: stop is in points, risk = stop * $/point * contracts
+    const riskPerContract=stop*m.dollarPerPoint;
     size=Math.floor(riskDollar/riskPerContract);
     margin=size*m.marginPerContract;
     unitLabel=size===1?'contract of '+m.name:'contracts of '+m.name;
@@ -208,7 +233,7 @@ function calc(){
     document.getElementById('size-unit').textContent='Stop too wide for risk amount';
     document.getElementById('risk-dollar').textContent='$'+riskDollar.toFixed(2);
     document.getElementById('margin-used').textContent='—';
-    warning.textContent='⚠️ Your stop loss is too wide for this risk %. Tighten stop or increase risk.';
+    warning.textContent='⚠️ Your stop is too wide for this risk %. Tighten stop or increase risk.';
     warning.classList.add('show');
     return;
   }
