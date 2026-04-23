@@ -33,9 +33,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .risk-preset{background:#1e1e2e;border:1px solid #2d2d3d;color:#94a3b8;border-radius:8px;padding:8px 4px;cursor:pointer;font-size:0.75rem;font-weight:600;transition:all 0.15s}
 .risk-preset.active{background:#3b1f6e;border-color:#a78bfa;color:#a78bfa}
 .result-card{background:linear-gradient(135deg,#1a1428 0%,#13131a 100%);border:1.5px solid #3b1f6e;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px}
-.result-label{font-size:0.7rem;color:#a78bfa;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;font-weight:600}
-.result-value{font-size:2.4rem;font-weight:800;color:#fff;line-height:1;margin-bottom:6px}
-.result-unit{font-size:0.85rem;color:#94a3b8;font-weight:500}
+.result-label{font-size:0.7rem;color:#a78bfa;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;font-weight:600}
+.result-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.result-col{background:#0d0d12;border:1px solid #2d2d3d;border-radius:10px;padding:14px 8px}
+.result-col-val{font-size:1.7rem;font-weight:800;color:#fff;line-height:1;margin-bottom:6px;word-break:break-word}
+.result-col-lbl{font-size:0.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:500}
 .result-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #2d2d3d}
 .result-item{text-align:center}
 .result-item-val{font-size:1rem;font-weight:700;color:#e2e8f0}
@@ -91,8 +93,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 
   <div class="result-card">
     <div class="result-label" id="size-label">Position Size</div>
-    <div class="result-value" id="size-value">—</div>
-    <div class="result-unit" id="size-unit">Enter values above</div>
+    <div class="result-split">
+      <div class="result-col">
+        <div class="result-col-val" id="size-value">—</div>
+        <div class="result-col-lbl" id="size-unit">Units</div>
+      </div>
+      <div class="result-col">
+        <div class="result-col-val" id="lot-value">—</div>
+        <div class="result-col-lbl" id="lot-unit">Standard Lot</div>
+      </div>
+    </div>
     <div class="result-secondary">
       <div class="result-item">
         <div class="result-item-val red" id="risk-dollar">—</div>
@@ -119,28 +129,33 @@ const MARKETS={
     name:'USD/JPY',type:'forex',
     pipValuePer10k:0.67,marginPer10k:20,
     stopUnit:'pips',tradeTitle:'USD/JPY Trade',
-    unit:'units',round:1000
+    unit:'Units',round:1000,
+    // 100,000 units = 1 standard lot
+    unitsPerStdLot:100000
   },
   mes:{
     name:'MES',type:'futures',
     dollarPerPoint:5,marginPerContract:50,
     stopUnit:'points',tradeTitle:'Micro S&P 500',
-    unit:'contract(s)',round:1,
-    example:'10 pts = $50/contract'
+    unit:'Contracts',round:1,
+    // 1 MES = 0.10 ES (ES is the full-size contract)
+    lotRatio:0.10,lotName:'ES Lot'
   },
   mcl:{
     name:'MCL',type:'futures',
     dollarPerPoint:100,marginPerContract:100,
     stopUnit:'points ($)',tradeTitle:'Micro Crude Oil',
-    unit:'contract(s)',round:1,
-    example:'1.00 = $100/contract'
+    unit:'Contracts',round:1,
+    // 1 MCL = 0.10 CL
+    lotRatio:0.10,lotName:'CL Lot'
   },
   mgc:{
     name:'MGC',type:'futures',
     dollarPerPoint:10,marginPerContract:100,
     stopUnit:'points ($)',tradeTitle:'Micro Gold',
-    unit:'contract(s)',round:1,
-    example:'10 pts = $100/contract'
+    unit:'Contracts',round:1,
+    // 1 MGC = 0.10 GC
+    lotRatio:0.10,lotName:'GC Lot'
   }
 };
 
@@ -203,34 +218,44 @@ function calc(){
   const warning=document.getElementById('warning');
   warning.classList.remove('show');
 
+  // Reset labels per market
+  document.getElementById('size-unit').textContent=m.unit;
+  if(m.type==='forex'){
+    document.getElementById('lot-unit').textContent='Standard Lot';
+  } else {
+    document.getElementById('lot-unit').textContent=m.lotName;
+  }
+
   if(!account||!riskPct||!stop){
     document.getElementById('size-value').textContent='—';
-    document.getElementById('size-unit').textContent='Enter values above';
+    document.getElementById('lot-value').textContent='—';
     document.getElementById('risk-dollar').textContent='—';
     document.getElementById('margin-used').textContent='—';
     return;
   }
 
   const riskDollar=account*(riskPct/100);
-  let size=0,margin=0,unitLabel=m.unit;
+  let size=0,margin=0,lotSize=0;
 
   if(m.type==='forex'){
     const riskPer10k=stop*m.pipValuePer10k;
     const rawUnits=(riskDollar/riskPer10k)*10000;
     size=Math.floor(rawUnits/m.round)*m.round;
     margin=(size/10000)*m.marginPer10k;
-    unitLabel=size===1?'unit of '+m.name:'units of '+m.name;
+    // Convert units to standard lots (100k units = 1 lot)
+    lotSize=size/m.unitsPerStdLot;
   } else {
     // Futures: stop is in points, risk = stop * $/point * contracts
     const riskPerContract=stop*m.dollarPerPoint;
     size=Math.floor(riskDollar/riskPerContract);
     margin=size*m.marginPerContract;
-    unitLabel=size===1?'contract of '+m.name:'contracts of '+m.name;
+    // Convert micro contracts to full-size lot equivalent (1 micro = 0.10 full)
+    lotSize=size*m.lotRatio;
   }
 
   if(size<=0){
     document.getElementById('size-value').textContent='0';
-    document.getElementById('size-unit').textContent='Stop too wide for risk amount';
+    document.getElementById('lot-value').textContent='0';
     document.getElementById('risk-dollar').textContent='$'+riskDollar.toFixed(2);
     document.getElementById('margin-used').textContent='—';
     warning.textContent='⚠️ Your stop is too wide for this risk %. Tighten stop or increase risk.';
@@ -246,8 +271,18 @@ function calc(){
     warning.classList.add('show');
   }
 
+  // Format lot size display
+  let lotDisplay;
+  if(lotSize>=1){
+    lotDisplay=lotSize.toFixed(2);
+  } else if(lotSize>=0.01){
+    lotDisplay=lotSize.toFixed(2);
+  } else {
+    lotDisplay=lotSize.toFixed(3);
+  }
+
   document.getElementById('size-value').textContent=size.toLocaleString();
-  document.getElementById('size-unit').textContent=unitLabel;
+  document.getElementById('lot-value').textContent=lotDisplay;
   document.getElementById('risk-dollar').textContent='$'+riskDollar.toFixed(2);
   document.getElementById('margin-used').textContent='$'+margin.toFixed(2);
 }
