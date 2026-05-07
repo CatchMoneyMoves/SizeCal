@@ -14,8 +14,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .header{text-align:center;margin-bottom:24px}
 .logo{font-size:1.5rem;font-weight:700;color:#a78bfa;margin-bottom:4px}
 .subtitle{font-size:0.8rem;color:#64748b}
-.market-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:20px;background:#13131a;padding:6px;border-radius:12px;border:1px solid #1e1e2e}
-.market-tab{background:transparent;border:none;color:#64748b;padding:10px 4px;border-radius:8px;cursor:pointer;font-size:0.72rem;font-weight:600;transition:all 0.15s;text-align:center}
+.market-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:20px;background:#13131a;padding:6px;border-radius:12px;border:1px solid #1e1e2e}
+.market-tab{background:transparent;border:none;color:#64748b;padding:12px 4px;border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:600;transition:all 0.15s;text-align:center}
 .market-tab.active{background:#3b1f6e;color:#a78bfa}
 .market-tab:not(.active):active{background:#1e1e2e}
 .card{background:#13131a;border:1px solid #1e1e2e;border-radius:14px;padding:18px;margin-bottom:14px}
@@ -34,20 +34,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .risk-preset.active{background:#3b1f6e;border-color:#a78bfa;color:#a78bfa}
 .result-card{background:linear-gradient(135deg,#1a1428 0%,#13131a 100%);border:1.5px solid #3b1f6e;border-radius:14px;padding:22px;text-align:center;margin-bottom:14px}
 .result-label{font-size:0.7rem;color:#a78bfa;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;font-weight:600}
-.result-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
-.result-col{background:#0d0d12;border:1px solid #2d2d3d;border-radius:10px;padding:14px 8px}
-.result-col-val{font-size:1.7rem;font-weight:800;color:#fff;line-height:1;margin-bottom:6px;word-break:break-word}
-.result-col-lbl{font-size:0.6rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:500}
-.result-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid #2d2d3d}
+.result-main{background:#0d0d12;border:1px solid #2d2d3d;border-radius:10px;padding:18px 8px;margin-bottom:10px}
+.result-main-val{font-size:2.4rem;font-weight:800;color:#fff;line-height:1;margin-bottom:6px}
+.result-main-lbl{font-size:0.65rem;color:#94a3b8;text-transform:uppercase;letter-spacing:1.2px;font-weight:500}
+.result-secondary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid #2d2d3d}
 .result-item{text-align:center}
-.result-item-val{font-size:1rem;font-weight:700;color:#e2e8f0}
+.result-item-val{font-size:0.95rem;font-weight:700;color:#e2e8f0}
 .result-item-val.green{color:#4ade80}
 .result-item-val.red{color:#f87171}
-.result-item-lbl{font-size:0.58rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+.result-item-lbl{font-size:0.55rem;color:#64748b;text-transform:uppercase;letter-spacing:1px;margin-top:3px}
 .warning{background:#2d1a0a;border:1px solid #a16207;border-radius:10px;padding:10px 14px;margin-top:10px;font-size:0.72rem;color:#fbbf24;text-align:center;display:none}
 .warning.show{display:block}
 .info-box{background:#0d0d12;border:1px solid #1e1e2e;border-radius:10px;padding:12px;font-size:0.7rem;color:#64748b;line-height:1.5;text-align:center}
 .info-box strong{color:#94a3b8}
+.spec-row{display:flex;justify-content:space-between;font-size:0.65rem;color:#64748b;margin-top:6px}
+.spec-row span:first-child{color:#475569}
 </style>
 </head>
 <body>
@@ -58,17 +59,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
   </div>
 
   <div class="market-tabs">
-    <button class="market-tab active" onclick="selectMarket('usdjpy',this)">USD/JPY</button>
-    <button class="market-tab" onclick="selectMarket('mes',this)">MES</button>
+    <button class="market-tab active" onclick="selectMarket('m6b',this)">M6B</button>
     <button class="market-tab" onclick="selectMarket('mcl',this)">MCL</button>
-    <button class="market-tab" onclick="selectMarket('mgc',this)">MGC</button>
+    <button class="market-tab" onclick="selectMarket('met',this)">MET</button>
   </div>
 
   <div class="card">
     <div class="card-title">Your Account</div>
     <div class="input-group">
       <div class="input-label">Account Size <span class="input-hint">USD · auto-saved</span></div>
-      <input type="number" class="input-field" id="account" placeholder="3250" inputmode="decimal">
+      <input type="number" class="input-field" id="account" placeholder="4666" inputmode="decimal">
       <div class="saved-indicator" id="saved-indicator">✓ Saved</div>
     </div>
     <div class="input-group">
@@ -88,20 +88,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
     <div class="input-group">
       <div class="input-label" id="stop-label">Stop Loss Distance <span class="input-hint" id="stop-hint">pips</span></div>
       <input type="number" class="input-field" id="stop" placeholder="20" step="0.01" inputmode="decimal" oninput="calc()">
+      <div class="spec-row" id="spec-info"></div>
     </div>
   </div>
 
   <div class="result-card">
-    <div class="result-label" id="size-label">Position Size</div>
-    <div class="result-split">
-      <div class="result-col">
-        <div class="result-col-val" id="size-value">—</div>
-        <div class="result-col-lbl" id="size-unit">Units</div>
-      </div>
-      <div class="result-col">
-        <div class="result-col-val" id="lot-value">—</div>
-        <div class="result-col-lbl" id="lot-unit">Standard Lot</div>
-      </div>
+    <div class="result-label">Position Size</div>
+    <div class="result-main">
+      <div class="result-main-val" id="size-value">—</div>
+      <div class="result-main-lbl" id="size-unit">Contracts</div>
     </div>
     <div class="result-secondary">
       <div class="result-item">
@@ -110,60 +105,61 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
       </div>
       <div class="result-item">
         <div class="result-item-val" id="margin-used">—</div>
-        <div class="result-item-lbl">Margin Used</div>
+        <div class="result-item-lbl">Est. Margin</div>
+      </div>
+      <div class="result-item">
+        <div class="result-item-val" id="risk-per-contract">—</div>
+        <div class="result-item-lbl">Risk/Contract</div>
       </div>
     </div>
   </div>
 
   <div class="warning" id="warning"></div>
 
-  <div class="info-box" id="info-box">
-    <strong>Tip:</strong> Enter stop loss in the same unit TradingView shows — pips for forex, points for futures.
+  <div class="info-box">
+    <strong>Tip:</strong> Enter stop loss in the same unit TradingView shows.
+    <br>Margin is estimated for Webull intraday — actual may vary.
   </div>
 </div>
 
 <script>
-// Based on actual CME contract specs & TradingView P&L measurements
+// CME contract specs verified against TradingView P&L
 const MARKETS={
-  usdjpy:{
-    name:'USD/JPY',type:'forex',
-    pipValuePer10k:0.67,marginPer10k:20,
-    stopUnit:'pips',tradeTitle:'USD/JPY Trade',
-    unit:'Units',round:1000,
-    // 100,000 units = 1 standard lot
-    unitsPerStdLot:100000
-  },
-  mes:{
-    name:'MES',type:'futures',
-    dollarPerPoint:5,marginPerContract:50,
-    stopUnit:'points',tradeTitle:'Micro S&P 500',
-    unit:'Contracts',round:1,
-    // 1 MES = 0.10 ES (ES is the full-size contract)
-    lotRatio:0.10,lotName:'ES Lot'
+  m6b:{
+    name:'M6B',fullName:'Micro British Pound',
+    tradeTitle:'M6B — Micro GBP/USD',
+    stopUnit:'pips',
+    dollarPerUnit:0.625,        // $ per pip per contract
+    unitDef:'1 pip = 0.0001',
+    contractSize:'6,250 GBP',
+    marginPerContract:140       // Webull intraday est.
   },
   mcl:{
-    name:'MCL',type:'futures',
-    dollarPerPoint:100,marginPerContract:100,
-    stopUnit:'points ($)',tradeTitle:'Micro Crude Oil',
-    unit:'Contracts',round:1,
-    // 1 MCL = 0.10 CL
-    lotRatio:0.10,lotName:'CL Lot'
+    name:'MCL',fullName:'Micro Crude Oil',
+    tradeTitle:'MCL — Micro Crude',
+    stopUnit:'$ (price)',
+    dollarPerUnit:100,          // $ per $1 move per contract
+    unitDef:'$1.00 move = $100',
+    contractSize:'100 barrels',
+    marginPerContract:100       // Webull intraday est.
   },
-  mgc:{
-    name:'MGC',type:'futures',
-    dollarPerPoint:10,marginPerContract:100,
-    stopUnit:'points ($)',tradeTitle:'Micro Gold',
-    unit:'Contracts',round:1,
-    // 1 MGC = 0.10 GC
-    lotRatio:0.10,lotName:'GC Lot'
+  met:{
+    name:'MET',fullName:'Micro Ether',
+    tradeTitle:'MET — Micro Ether',
+    stopUnit:'points',
+    dollarPerUnit:0.10,         // $ per index point per contract
+    unitDef:'1 point = $0.10',
+    contractSize:'0.1 ETH',
+    marginPerContract:50        // Webull intraday est.
   }
 };
 
-let currentMarket='usdjpy';
+let currentMarket='m6b';
 
 function loadSaved(){
   const acc=localStorage.getItem('sizecal_account');
   const risk=localStorage.getItem('sizecal_risk');
+  const market=localStorage.getItem('sizecal_market');
   if(acc)document.getElementById('account').value=acc;
   if(risk){
     document.getElementById('risk').value=risk;
@@ -171,6 +167,13 @@ function loadSaved(){
       p.classList.toggle('active',parseFloat(p.textContent)===parseFloat(risk));
     });
   }
+  if(market&&MARKETS[market]){
+    currentMarket=market;
+    document.querySelectorAll('.market-tab').forEach(t=>{
+      t.classList.toggle('active',t.textContent.toLowerCase()===market);
+    });
+  }
+  updateMarketUI();
 }
 
 function showSaved(){
@@ -179,15 +182,20 @@ function showSaved(){
   setTimeout(()=>ind.classList.remove('show'),1500);
 }
 
+function updateMarketUI(){
+  const m=MARKETS[currentMarket];
+  document.getElementById('trade-title').textContent=m.tradeTitle;
+  document.getElementById('stop-label').innerHTML=`Stop Loss Distance <span class="input-hint">${m.stopUnit}</span>`;
+  document.getElementById('spec-info').innerHTML=`<span>Contract: ${m.contractSize}</span><span>${m.unitDef}</span>`;
+  calc();
+}
+
 function selectMarket(key,btn){
   currentMarket=key;
+  localStorage.setItem('sizecal_market',key);
   document.querySelectorAll('.market-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  const m=MARKETS[key];
-  document.getElementById('trade-title').textContent=m.tradeTitle;
-  document.getElementById('stop-hint').textContent=m.stopUnit;
-  document.getElementById('stop-label').innerHTML=`Stop Loss Distance <span class="input-hint">${m.stopUnit}</span>`;
-  calc();
+  updateMarketUI();
 }
 
 function setRisk(val,btn){
@@ -218,47 +226,26 @@ function calc(){
   const warning=document.getElementById('warning');
   warning.classList.remove('show');
 
-  // Reset labels per market
-  document.getElementById('size-unit').textContent=m.unit;
-  if(m.type==='forex'){
-    document.getElementById('lot-unit').textContent='Standard Lot';
-  } else {
-    document.getElementById('lot-unit').textContent=m.lotName;
-  }
-
   if(!account||!riskPct||!stop){
     document.getElementById('size-value').textContent='—';
-    document.getElementById('lot-value').textContent='—';
     document.getElementById('risk-dollar').textContent='—';
     document.getElementById('margin-used').textContent='—';
+    document.getElementById('risk-per-contract').textContent='—';
     return;
   }
 
   const riskDollar=account*(riskPct/100);
-  let size=0,margin=0,lotSize=0;
-
-  if(m.type==='forex'){
-    const riskPer10k=stop*m.pipValuePer10k;
-    const rawUnits=(riskDollar/riskPer10k)*10000;
-    size=Math.floor(rawUnits/m.round)*m.round;
-    margin=(size/10000)*m.marginPer10k;
-    // Convert units to standard lots (100k units = 1 lot)
-    lotSize=size/m.unitsPerStdLot;
-  } else {
-    // Futures: stop is in points, risk = stop * $/point * contracts
-    const riskPerContract=stop*m.dollarPerPoint;
-    size=Math.floor(riskDollar/riskPerContract);
-    margin=size*m.marginPerContract;
-    // Convert micro contracts to full-size lot equivalent (1 micro = 0.10 full)
-    lotSize=size*m.lotRatio;
-  }
+  const riskPerContract=stop*m.dollarPerUnit;
+  const size=Math.floor(riskDollar/riskPerContract);
+  const margin=size*m.marginPerContract;
+  const actualRisk=size*riskPerContract;
 
   if(size<=0){
     document.getElementById('size-value').textContent='0';
-    document.getElementById('lot-value').textContent='0';
     document.getElementById('risk-dollar').textContent='$'+riskDollar.toFixed(2);
     document.getElementById('margin-used').textContent='—';
-    warning.textContent='⚠️ Your stop is too wide for this risk %. Tighten stop or increase risk.';
+    document.getElementById('risk-per-contract').textContent='$'+riskPerContract.toFixed(2);
+    warning.textContent='⚠️ Stop too wide for this risk %. Tighten stop or accept smaller size.';
     warning.classList.add('show');
     return;
   }
@@ -271,24 +258,14 @@ function calc(){
     warning.classList.add('show');
   }
 
-  // Format lot size display
-  let lotDisplay;
-  if(lotSize>=1){
-    lotDisplay=lotSize.toFixed(2);
-  } else if(lotSize>=0.01){
-    lotDisplay=lotSize.toFixed(2);
-  } else {
-    lotDisplay=lotSize.toFixed(3);
-  }
-
   document.getElementById('size-value').textContent=size.toLocaleString();
-  document.getElementById('lot-value').textContent=lotDisplay;
-  document.getElementById('risk-dollar').textContent='$'+riskDollar.toFixed(2);
-  document.getElementById('margin-used').textContent='$'+margin.toFixed(2);
+  document.getElementById('size-unit').textContent=size===1?'Contract':'Contracts';
+  document.getElementById('risk-dollar').textContent='$'+actualRisk.toFixed(2);
+  document.getElementById('margin-used').textContent='$'+margin.toLocaleString();
+  document.getElementById('risk-per-contract').textContent='$'+riskPerContract.toFixed(2);
 }
 
 loadSaved();
-calc();
 </script>
 </body>
 </html>
