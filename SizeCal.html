@@ -14,7 +14,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 .header{text-align:center;margin-bottom:24px}
 .logo{font-size:1.5rem;font-weight:700;color:#a78bfa;margin-bottom:4px}
 .subtitle{font-size:0.8rem;color:#64748b}
-.market-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:20px;background:#13131a;padding:6px;border-radius:12px;border:1px solid #1e1e2e}
+.market-tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:20px;background:#13131a;padding:6px;border-radius:12px;border:1px solid #1e1e2e}
 .market-tab{background:transparent;border:none;color:#64748b;padding:12px 4px;border-radius:8px;cursor:pointer;font-size:0.78rem;font-weight:600;transition:all 0.15s;text-align:center}
 .market-tab.active{background:#3b1f6e;color:#a78bfa}
 .market-tab:not(.active):active{background:#1e1e2e}
@@ -59,9 +59,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
   </div>
 
   <div class="market-tabs">
-    <button class="market-tab active" onclick="selectMarket('m6b',this)">M6B</button>
-    <button class="market-tab" onclick="selectMarket('mcl',this)">MCL</button>
-    <button class="market-tab" onclick="selectMarket('met',this)">MET</button>
+    <button class="market-tab active" onclick="selectMarket('m2k',this)">M2K — Russell</button>
+    <button class="market-tab" onclick="selectMarket('mbt',this)">MBT — Bitcoin</button>
   </div>
 
   <div class="card">
@@ -123,38 +122,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
 </div>
 
 <script>
-// CME contract specs verified against TradingView P&L
+// M2K & MBT specs verified against TradingView/Webull P&L
 const MARKETS={
-  m6b:{
-    name:'M6B',fullName:'Micro British Pound',
-    tradeTitle:'M6B — Micro GBP/USD',
-    stopUnit:'pips',
-    dollarPerUnit:0.625,        // $ per pip per contract
-    unitDef:'1 pip = 0.0001',
-    contractSize:'6,250 GBP',
-    marginPerContract:140       // Webull intraday est.
-  },
-  mcl:{
-    name:'MCL',fullName:'Micro Crude Oil',
-    tradeTitle:'MCL — Micro Crude',
-    stopUnit:'$ (price)',
-    dollarPerUnit:100,          // $ per $1 move per contract
-    unitDef:'$1.00 move = $100',
-    contractSize:'100 barrels',
-    marginPerContract:100       // Webull intraday est.
-  },
-  met:{
-    name:'MET',fullName:'Micro Ether',
-    tradeTitle:'MET — Micro Ether',
+  m2k:{
+    name:'M2K',fullName:'Micro Russell 2000',
+    tradeTitle:'M2K — Micro Russell 2000',
     stopUnit:'points',
-    dollarPerUnit:0.10,         // $ per index point per contract
-    unitDef:'1 point = $0.10',
-    contractSize:'0.1 ETH',
-    marginPerContract:50        // Webull intraday est.
+    dollarPerUnit:5,            // $5 per point per contract
+    unitDef:'1 pt = $5 · TV tick = 0.10 pt = $0.50',
+    contractSize:'$5 × Russell 2000',
+    marginPerContract:75        // Webull intraday est.
+  },
+  mbt:{
+    name:'MBT',fullName:'Micro Bitcoin',
+    tradeTitle:'MBT — Micro Bitcoin',
+    stopUnit:'points',
+    dollarPerUnit:0.10,         // $0.10 per BTC price point per contract
+    unitDef:'1 pt = $0.10 · TV tick = $5 = $0.50',
+    contractSize:'0.1 BTC',
+    marginPerContract:800       // Webull intraday est.
   }
 };
 
-let currentMarket='m6b';
+let currentMarket='m2k';
 
 function loadSaved(){
   const acc=localStorage.getItem('sizecal_account');
